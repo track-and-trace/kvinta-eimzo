@@ -1,0 +1,53 @@
+kvinta:
+  uz:
+    eimzo:
+      keystore:
+        name: "HDImageStore"
+      containers:
+        name: ""
+        cryptoContainerPath: ""
+        password: ""
+
+micronaut:
+  application:
+    name: kvinta-uz-eimzo
+  router:
+    static-resources:
+      swagger:
+        paths:
+          - classpath:META-INF/swagger
+          - classpath:swagger
+        mapping: /swagger/**
+  server:
+    port: 8080
+    cors:
+      enabled: true
+      configurations:
+        all:
+          allowedOrigins:
+            - ^http(|s):.*$
+  metrics:
+    enabled: true
+    export:
+      prometheus:
+        enabled: true
+        step: PT1M
+        descriptions: true
+
+endpoints:
+  info:
+    enabled: true
+    sensitive: false
+  metrics:
+    enabled: true
+    sensitive: false
+  prometheus:
+    enabled: true
+    sensitive: false
+  health:
+    details-visible: ANONYMOUS
+    enabled: true
+    sensitive: false
+  disk-space:
+    enabled: true
+    sensitive: false
