@@ -6,26 +6,17 @@ buildscript {
     }
 }
 
-plugins {
-    id "com.gorylenko.gradle-git-properties" version "2.2.1"
-    id "com.pasam.gradle.buildinfo" version "0.1.3"
-}
-
 apply plugin: "io.kvinta.artifacts"
 apply plugin: "io.kvinta.gitops"
 apply plugin: "io.kvinta.docker"
 apply plugin: "io.kvinta.micronaut.application"
 
-apply plugin: "com.gorylenko.gradle-git-properties"
-apply plugin: "com.pasam.gradle.buildinfo"
-
 apply from: project.buildscript.classLoader.getResource("io/kvinta/gradle/gitops/codeartifact.gradle").toURI()
 apply from: project.buildscript.classLoader.getResource("io/kvinta/gradle/gitops/idea.gradle").toURI()
 apply from: project.buildscript.classLoader.getResource("io/kvinta/gradle/gitops/publishing.gradle").toURI()
 
-gitProperties {
-    // keys = ['git.branch', 'git.commit.id', 'git.commit.time']
-    customProperty 'git.commit.id.describe', { it.describe(tags: true) }
+application {
+    mainClassName = "kvinta.uz.eimzo.Application"
 }
 
 dependencies {
