@@ -17,7 +17,7 @@ class EImzoCryptoConfigPropertySourceLoader : YamlPropertySourceLoader() {
 
     private val log = KotlinLogging.logger {}
 
-    private val configsFilePath = "eimzo.configs.file.path"
+    private val configsFilePath = "kvinta.uz.eimzo.containers.name.crypto-container-path"
 
     override fun getOrder() = EnvironmentPropertySource.POSITION - 10
 
