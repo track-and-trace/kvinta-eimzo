@@ -19,9 +19,9 @@ module "this" {
 
   envs = merge(
     {
-      KVINTA_UZ_EIMZO_CONTAINERS_NAME                = var.eimzo_enable ? lookup(var.eimzo_config, "name") : null
-      KVINTA_UZ_EIMZO_CONTAINERS_CRYPTOCONTAINERPATH = var.eimzo_enable ? "/app/eimzo/key-file.pfx" : null
-      eimzo_checksum                                 = md5(yamlencode(var.eimzo_config))
+      KVINTA_UZ_EIMZO_CONTAINERS_NAME                  = var.eimzo_enable ? lookup(var.eimzo_config, "name") : null
+      KVINTA_UZ_EIMZO_CONTAINERS_CRYPTO_CONTAINER_PATH = var.eimzo_enable ? "/app/eimzo/key-file.pfx" : null
+      eimzo_checksum                                   = md5(yamlencode(var.eimzo_config))
     },
     var.envs,
   )
