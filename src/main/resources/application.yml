@@ -5,7 +5,7 @@ kvinta:
         name: "HDImageStore"
       containers:
         name: ""
-        cryptoContainerPath: ""
+        crypto-container-path: ""
         password: ""
 
 micronaut:
