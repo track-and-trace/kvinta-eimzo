@@ -1,1 +1,1 @@
-# kvinta-uz-eimzo-client
+# kvinta-eimzo
