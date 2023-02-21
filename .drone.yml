@@ -1,0 +1,263 @@
+---
+kind: secret
+name: terraform-kvinta-io-token
+get:
+  path: terraform-kvinta-io-token
+  name: terraform-kvinta-io-token
+
+---
+kind: secret
+name: yandex-cloud-sa-key
+get:
+  path: kvinta-yac-sa-key
+  name: sa-key
+
+---
+kind: pipeline
+name: default
+type: docker
+platform:
+  os: linux
+  arch: amd64
+trigger:
+  ref:
+    include:
+      - refs/tags/**
+      - refs/heads/dev
+      - refs/heads/feature/**
+      - refs/heads/hotfix/**
+
+# services:
+#   - name: postgres
+#     image: postgres:10
+#     environment:
+#       POSTGRES_DB: postgres
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+
+steps:
+  - name: download-cache
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/cache/gradle:1.0
+    pull: always
+    settings:
+      action: download
+    when:
+      ref:
+        exclude:
+          - refs/tags/**
+
+  - name: version
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/version:3.5
+    pull: always
+    depends_on:
+      - download-cache
+    settings:
+      type: app
+
+  - name: deps
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/builder/gradle:2.0.0
+    pull: always
+    depends_on:
+      - download-cache
+    commands:
+      - gradle kvinta.resolveDeps --debug
+      - gradle kvinta.storeDeps --no-fail
+
+  - name: build
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/builder/gradle:2.0.0
+    pull: always
+    depends_on:
+      - deps
+      - version
+    # environment:
+    #   DATASOURCES_MASTERDATASTORE_URL: jdbc:postgresql://postgres:5432/postgres
+    #   DATASOURCES_MASTERDATASTORE_PASSWORD: postgres
+    #   DATASOURCES_MASTERDATASTORE_SCHEMA: postgres
+    commands:
+      - gradle classes
+      - gradle test -i
+      - gradle kvinta.javaDocker
+
+
+  - name: docker
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/ecr:1.0
+    pull: always
+    privileged: true
+    depends_on:
+      - build
+    settings:
+      dockerfile: build/docker/Dockerfile
+      context: build/docker
+      label_app_name: true
+      repo: apps/eimzo
+      registry: 463422107539.dkr.ecr.eu-central-1.amazonaws.com
+
+  - name: terraform
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/terraform/module:2.0
+    pull: always
+    depends_on:
+      - build
+    settings:
+      registry_token:
+        from_secret: terraform-kvinta-io-token
+      path: src/main/terraform
+      namespace: apps
+      name: eimzo
+      provider: k8s
+    when:
+      ref:
+        include:
+          - refs/tags/**
+
+  - name: deploy-aws
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/deploy/k8s:2.0
+    pull: always
+    depends_on:
+      - docker
+      - terraform
+    settings:
+      label: eimzo
+      repo: apps/eimzo
+    when:
+      ref:
+        include:
+          - refs/heads/dev
+
+  - name: docker-sync-2-yandex
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/docker-images-sync:latest
+    pull: always
+    depends_on:
+      - docker
+      - terraform
+    settings:
+      destination: cr.yandex/crpqdc6evkvb507i685c
+      current_image: true
+      repo: apps/eimzo
+      yac_sa_key:
+        from_secret: yandex-cloud-sa-key
+    when:
+      ref:
+        include:
+          - refs/heads/dev
+
+  - name: deploy-yandex
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/deploy/k8s:2.0
+    pull: always
+    depends_on:
+      - docker-sync-2-yandex
+    settings:
+      label: eimzo
+      repo: apps/eimzo
+      context: kvinta-yac
+      registry: cr.yandex/crpqdc6evkvb507i685c
+      yac_sa_key:
+        from_secret: yandex-cloud-sa-key
+    when:
+      ref:
+        include:
+          - refs/heads/dev
+
+#  - name: integration-tests
+#    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/gac-stack-integration-tests:1.0
+#    pull: always
+#    depends_on:
+#      - deploy
+#    settings:
+#      test_urls:
+#        - https://traffic.private.dev.kvinta.kvinta.io/scenario/run
+#        - https://traffic.private.dev.kvinta.kvinta.io/mobile/receiving/run
+#        - https://traffic.private.dev.kvinta.kvinta.io/mobile/packing/run
+#        - https://traffic.private.dev.kvinta.kvinta.io/mobile/unpacking/run
+#    when:
+#      ref:
+#        include:
+#          - refs/heads/dev
+
+  - name: save-cache
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/cache/gradle:1.0
+    pull: always
+    depends_on:
+      - build
+    settings:
+      action: upload
+    when:
+      ref:
+        exclude:
+          - refs/tags/**
+
+---
+kind: pipeline
+name: pull-request
+type: docker
+platform:
+  os: linux
+  arch: amd64
+concurrency:
+  limit: 1
+trigger:
+  branch:
+    - master
+  event:
+    - pull_request
+
+# services:
+#   - name: postgres
+#     image: postgres:10
+#     environment:
+#       POSTGRES_DB: postgres
+#       POSTGRES_USER: postgres
+#       POSTGRES_PASSWORD: postgres
+
+steps:
+  - name: deps
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/builder/gradle:2.0.0
+    pull: always
+    commands:
+      - gradle kvinta.resolveDeps
+      - gradle kvinta.storeDeps --no-fail
+
+  - name: build
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/builder/gradle:2.0.0
+    pull: always
+    depends_on:
+      - deps
+    # environment:
+    #   DATASOURCES_MASTERDATASTORE_URL: jdbc:postgresql://postgres:5432/postgres
+    #   DATASOURCES_MASTERDATASTORE_PASSWORD: postgres
+    #   DATASOURCES_MASTERDATASTORE_SCHEMA: postgres
+    commands:
+      - gradle classes
+      - gradle test -i
+
+  - name: merge-pull-request
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/gitops:1.0
+    pull: always
+    depends_on:
+      - build
+    settings:
+      action: merge_pull_request
+    when:
+      event:
+        - pull_request
+
+---
+kind: pipeline
+name: create-tag-from-master
+type: docker
+platform:
+  os: linux
+  arch: amd64
+concurrency:
+  limit: 1
+trigger:
+  branch:
+    - master
+  event:
+    - push
+
+steps:
+  - name: create-tag-from-pr
+    image: 463422107539.dkr.ecr.eu-central-1.amazonaws.com/drone/plugins/gitops:1.0
+    pull: always
+    settings:
+      action: create_tag
