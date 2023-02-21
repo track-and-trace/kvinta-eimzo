@@ -57,6 +57,13 @@ dependencies {
 
      // E-IMZO API
     implementation 'uz.eimzo:eimzo-libraries:dev-SNAPSHOT'
+
+    //TODO
+    compileClasspath('uz.eimzo.eimzo-api:cams-common:2.11-eimzo-SNAPSHOT')
+    compileClasspath('uz.eimzo.eimzo-api:cams-pki:2.11-eimzo-SNAPSHOT')
+    compileClasspath('uz.eimzo.crypto:yt-jce-lib:1.5-eimzo-SNAPSHOT')
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16
+    compileClasspath group: "org.bouncycastle", name: "bcprov-jdk15on", version: "1.66"
+    // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk15on
+    compileClasspath group: "org.bouncycastle", name: "bcpkix-jdk15on", version: "1.66"    
 }
-
-
