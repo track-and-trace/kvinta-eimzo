@@ -59,15 +59,20 @@ dependencies {
     implementation 'uz.eimzo:eimzo-libraries:dev-SNAPSHOT'
 
     //TODO
-    compileClasspath('uz.eimzo.eimzo-api:cams-common:2.11-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.eimzo-api:cams-pki:2.11-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.crypto:yt-jce-lib:1.5-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.crypto:yt-crypt-lib:1.5-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.eimzo-api:kernel:4.33-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.eimzo-api:pki:1.6-eimzo-SNAPSHOT')
-    compileClasspath('uz.eimzo.tls:stunnel-core:1.1-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.eimzo-api:cams-common:2.11-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.eimzo-api:cams-pki:2.11-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.crypto:yt-jce-lib:1.5-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.crypto:yt-crypt-lib:1.5-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.eimzo-api:kernel:4.33-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.eimzo-api:pki:1.6-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.tls:stunnel-core:1.1-eimzo-SNAPSHOT')
     // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16
-    compileClasspath group: "org.bouncycastle", name: "bcprov-jdk15on", version: "1.50"
+    implementation ("org.bouncycastle:bcprov-jdk15on"){
+        version {strictly '1.50'}
+    }
+
     // https://mvnrepository.com/artifact/org.bouncycastle/bcpkix-jdk15on
-    compileClasspath group: "org.bouncycastle", name: "bcpkix-jdk15on", version: "1.50"
+    implementation ("org.bouncycastle:bcpkix-jdk15on"){
+        version {strictly '1.50'}
+    }
 }

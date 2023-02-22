@@ -6,7 +6,7 @@ kvinta:
 
 micronaut:
   application:
-    name: kvinta-uz-eimzo
+    name: kvinta-eimzo
   router:
     static-resources:
       swagger:
