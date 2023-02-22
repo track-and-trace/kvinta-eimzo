@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.info.Info
 
 @OpenAPIDefinition(
     info = Info(
-        title = "Kvinta E-IMZO signature Service",
+        title = "Kvinta EIMZO signature Service",
         version = "0.1",
         description = "Swagger for Kvinta E-IMZO signature Service"
     )

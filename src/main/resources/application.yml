@@ -3,10 +3,6 @@ kvinta:
     eimzo:
       keystore:
         name: "HDImageStore"
-      containers:
-        name: ${KVINTA_UZ_EIMZO_CONTAINERS_NAME}
-        crypto-container-path: ${KVINTA_UZ_EIMZO_CONTAINERS_CRYPTO_CONTAINER_PATH}
-        password: ""
 
 micronaut:
   application:

@@ -12,12 +12,13 @@ import java.nio.file.Files.*
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
+import kotlin.io.path.name
 
 class EImzoCryptoConfigPropertySourceLoader : YamlPropertySourceLoader() {
 
     private val log = KotlinLogging.logger {}
 
-    private val configsFilePath = "kvinta.uz.eimzo.containers.name.crypto-container-path"
+    private val configsFilePath = "eimzo.configs.file.path"
 
     override fun getOrder() = EnvironmentPropertySource.POSITION - 10
 
@@ -31,7 +32,9 @@ class EImzoCryptoConfigPropertySourceLoader : YamlPropertySourceLoader() {
 
         return when (environmentName.isEmpty()) {
             true -> Optional.empty()
-            else -> getEnvValueAsStream(environmentName)
+            else -> {
+                getEnvValueAsStream(environmentName)
+            }
         }.also {
             log.info("Processed configuration file $environmentName with result $it")
         }
@@ -44,10 +47,10 @@ class EImzoCryptoConfigPropertySourceLoader : YamlPropertySourceLoader() {
         val exists = exists(configLocationPath)
         val regularFile = isRegularFile(configLocationPath)
         val readable = isReadable(configLocationPath)
-
+        log.info("Name: ${configLocationPath.fileName.name}")
         if (exists && regularFile && readable) {
             log.info("Configuration file will be loaded from $configLocationPath")
-            return DefaultFileSystemResourceLoader(configLocationPath).getResourceAsStream(environmentName)
+            return DefaultFileSystemResourceLoader(configLocationPath.parent).getResourceAsStream(configLocationPath.fileName.name)
         }
 
         log.warn("Configuration file $configLocationPath was not loaded: exists = $exists, regularFile = $regularFile, readable = $readable")

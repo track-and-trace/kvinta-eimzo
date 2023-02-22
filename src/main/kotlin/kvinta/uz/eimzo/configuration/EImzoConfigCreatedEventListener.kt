@@ -13,7 +13,7 @@ class EImzoConfigCreatedEventListener : BeanCreatedEventListener<EImzoCryptoConf
 
     override fun onCreated(@NonNull event: BeanCreatedEvent<EImzoCryptoConfig>): EImzoCryptoConfig {
         val config = event.bean as EImzoCryptoConfig
-        log.trace("Loading Kvinta E-IMZO configuration: ${config.name}")
+        log.info("Loading Kvinta E-IMZO configuration: ${config.name}")
 
         return config
     }
