@@ -26,13 +26,7 @@ class  EImzoCryptoClient(
 ) {
 
     fun sign(request: EImzoMessageToSignRequest) : EImzoSignResponse {
-        val provider = BouncyCastleProvider()
-        try {
-            YTProvider.configure(provider)
-            Security.addProvider(provider as Provider)
-        } catch (e: Throwable) {
-            throw RuntimeException("Failed to initialize BouncyCastle", e)
-        }
+        val provider = Security.getProvider("BC")
         val keyUtils = KeyUtils(provider)
         val config = eImzoCryptoConfigService.getEImzoCryptoConfigByName(request.cryptoContainerName)
             ?: throw IllegalArgumentException("Configuration with name ${request.cryptoContainerName} not found")
