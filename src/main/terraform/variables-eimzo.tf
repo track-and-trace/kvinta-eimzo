@@ -4,7 +4,7 @@ variable "eimzo_enable" {
 }
 
 variable "eimzo_config" {
-  type        = map(string)
-  description = "eimzo container data."
+  type        = map(any)
+  description = "Eimzo container data."
   default     = {}
 }

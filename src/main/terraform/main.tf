@@ -19,40 +19,39 @@ module "this" {
 
   envs = merge(
     {
-      KVINTA_UZ_EIMZO_CONTAINERS_NAME                  = var.eimzo_enable ? lookup(var.eimzo_config, "name") : null
-      KVINTA_UZ_EIMZO_CONTAINERS_CRYPTO_CONTAINER_PATH = var.eimzo_enable ? "/app/eimzo/key-file.pfx" : null
-      eimzo_checksum                                   = md5(yamlencode(var.eimzo_config))
+      EIMZO_CONFIGS_FILE_PATH = "/app/eimzo-configs/configs.yml"
+      eimzo_checksum          = md5(yamlencode(var.eimzo_config))
+      init_checksum           = local.eimzo_init_container_script_checksum
     },
     var.envs,
   )
 
   sensitive_envs = { for k, v in merge({
-    KVINTA_UZ_EIMZO_CONTAINERS_PASSWORD = var.eimzo_enable ? lookup(var.eimzo_config, "password") : null
     }, var.sensitive_envs,
   ) : (k) => v if v != null }
 
 
   vols_secrets = [
     {
-      name       = kubernetes_secret.eimzo_data[0].metadata.0.name
-      mount_path = "/app/secrets/eimzo"
+      name       = kubernetes_secret.eimzo_data.metadata.0.name
+      mount_path = "/app/eimzo-configs"
+    },
+    {
+      name       = kubernetes_secret.eimzo_keys.metadata.0.name
+      mount_path = "/app/eimzo-keys-data"
     }
   ]
 
-  vols_configmaps = [
-    {
-      name       = kubernetes_config_map.eimzo_init_container.metadata[0].name
-      mount_path = "/app/init-scripts/"
-      mode       = "0700"
-    }
-  ]
+  vols_shared = [{
+    name       = "eimzo-keys-data"
+    mount_path = "/app/eimzo-keys"
+  }]
 
-  vols_shared = [
-    {
-      name       = "eimzo-keys"
-      mount_path = "/app/eimzo"
-    }
-  ]
+  vols_configmaps = [{
+    name       = kubernetes_config_map.eimzo_init_container.metadata.0.name
+    mount_path = "/app/init-scripts/"
+    mode       = "0700"
+  }]
 
   busybox_init_containers = [
     {
@@ -75,6 +74,43 @@ module "this" {
   cloud_version = var.cloud_version
 }
 
+
+locals {
+  eimzo_init_container_script          = <<-SH
+      #!/usr/bin/env bash
+
+      set -e
+
+      echo "Preparing Eimzo container files"
+
+      for filename in ${local.eimzo_keys_files}; do
+        src_file_base64="/app/eimzo-keys-data/$filename"
+        dst_file=$(echo "/app/eimzo-keys/$filename" | sed 's/\.pfx\.base64/.pfx/')
+
+        echo "Unpacking '$src_file_base64' to '$dst_file'"
+        if [ -f $src_file_base64 ]; then
+          touch $dst_file # test if dest is writable
+          base64 -d $src_file_base64 > $dst_file
+        else
+          echo "Can't find file $src_file_base64"
+          echo "Printing all possible files:"
+          ls -l /app/eimzo-keys-data
+          exit 1
+        fi
+      done
+
+      chmod -R u=rx,go-rwx /app/eimzo-keys
+
+      echo "Done"
+
+      echo "DEBUG:"
+      echo "EIMZO_CONFIGS_FILE_PATH=$EIMZO_CONFIGS_FILE_PATH"
+      echo "EIMZO_CONFIGS_FILE_PATH:"
+      cat $EIMZO_CONFIGS_FILE_PATH
+    SH
+  eimzo_init_container_script_checksum = md5(local.eimzo_init_container_script)
+}
+
 resource "kubernetes_config_map" "eimzo_init_container" {
   metadata {
     name      = "eimzo-init-container"
@@ -87,31 +123,6 @@ resource "kubernetes_config_map" "eimzo_init_container" {
   }
 
   data = {
-    "init_container.sh" = <<-SH
-      #!/usr/bin/env bash
-
-      set -e
-
-      echo "Preparing Eimzo container files"
-
-      mkdir -p /app/eimzo
-
-      for filename in key-file.pfx; do
-        final_name="/app/eimzo/$${filename}"
-        echo "Storing $${final_name}"
-        if [ -f /app/secrets/eimzo/$${filename} ]; then
-          base64 -d /app/secrets/eimzo/$${filename} > "$${final_name}"
-        else
-          echo "Can't find file /app/secrets/eimzo/$${filename}"
-          echo "Printing all possible files:"
-          find /app/secrets/eimzo/
-          exit 1
-        fi
-      done
-
-      chmod -R u=rx,go-rwx /app/eimzo
-
-      echo "Done"
-    SH
+    "init_container.sh" = local.eimzo_init_container_script
   }
 }
