@@ -56,16 +56,16 @@ dependencies {
     implementation "io.swagger.core.v3:swagger-annotations"
 
      // E-IMZO API
-    implementation 'uz.eimzo:eimzo-libraries:dev-SNAPSHOT'
+    implementation 'uz.eimzo:eimzo-libraries:0.0.1'
 
     //TODO
-    implementation('uz.eimzo.eimzo-api:cams-common:2.11-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.eimzo-api:cams-pki:2.11-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.crypto:yt-jce-lib:1.5-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.crypto:yt-crypt-lib:1.5-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.eimzo-api:kernel:4.33-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.eimzo-api:pki:1.6-eimzo-SNAPSHOT')
-    implementation('uz.eimzo.tls:stunnel-core:1.1-eimzo-SNAPSHOT')
+    implementation('uz.eimzo.eimzo-api:cams-common:2.11-eimzo-0.0.1')
+    implementation('uz.eimzo.eimzo-api:cams-pki:2.11-eimzo-0.0.1')
+    implementation('uz.eimzo.crypto:yt-jce-lib:1.5-eimzo-0.0.1')
+    implementation('uz.eimzo.crypto:yt-crypt-lib:1.5-eimzo-0.0.1')
+    implementation('uz.eimzo.eimzo-api:kernel:4.33-eimzo-0.0.1')
+    implementation('uz.eimzo.eimzo-api:pki:1.6-eimzo-0.0.1')
+    implementation('uz.eimzo.tls:stunnel-core:1.1-eimzo-0.0.1')
     // https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk16
     implementation ("org.bouncycastle:bcprov-jdk15on"){
         version {strictly '1.50'}
